@@ -1,16 +1,15 @@
 package ru.practicum.shareit.item.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Builder;
 import lombok.Data;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
 
 @Data
 @Builder
 public class ItemDto {
-    @PositiveOrZero(message = "Id не может отрицательным числом")
+    @PositiveOrZero(message = "Id вещи не может быть отрицательным числом")
     private Long id;
 
     @NotBlank(message = "Название вещи не может быть пустым")
@@ -20,11 +19,11 @@ public class ItemDto {
     private String description;
 
     @NotNull
-    private Boolean isAvailable;
+    private Boolean available;
 
-    @PositiveOrZero(message = "Id не может отрицательным числом")
+    @PositiveOrZero(message = "Id владельца не может быть отрицательным числом")
     private Long ownerId;
 
-    @PositiveOrZero(message = "Id не может отрицательным числом")
+    @PositiveOrZero(message = "Id запроса не может быть отрицательным числом")
     private Long requestId;
 }

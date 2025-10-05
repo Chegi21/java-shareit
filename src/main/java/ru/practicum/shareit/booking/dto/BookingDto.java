@@ -1,11 +1,12 @@
 package ru.practicum.shareit.booking.dto;
 
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 
 @Data
@@ -30,6 +31,6 @@ public class BookingDto {
     @PositiveOrZero(message = "Id арендатора не может быть отрицательным числом")
     private Long bookerId;
 
-    @NotNull(message = "Статус брони не может быть null")
+    @NotBlank(message = "Статус брони не может быть пустым")
     private String status;
 }
