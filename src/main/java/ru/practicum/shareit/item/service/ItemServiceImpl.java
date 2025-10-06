@@ -9,32 +9,35 @@ import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.dao.ItemDao;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.dao.UserDao;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.user.service.UserServiceImp;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class ItemServiceImpl implements ItemService {
     private final ItemDao itemDao;
-    private final UserService userService;
+    private final UserDao userDao;
 
     @Autowired
-    public ItemServiceImpl(ItemDao itemDao, UserServiceImp userService) {
+    public ItemServiceImpl(ItemDao itemDao, UserDao userDao) {
         this.itemDao = itemDao;
-        this.userService = userService;
+        this.userDao = userDao;
     }
 
     @Override
     public Collection<ItemDto> getItemsByOwner(Long ownerId) {
         log.info("Запрос на список вещей пользователя с id = {}", ownerId);
 
-        userService.getUserById(ownerId);
+        User user = userDao.getUserById(ownerId);
+        if (user == null) {
+            log.warn("Пользователь с id = {} не найден", ownerId);
+            throw new NotFoundException("Пользователь не найден");
+        }
 
         Collection<Item> items = itemDao.getItemsByOwner(ownerId);
 
@@ -59,10 +62,11 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto getItemById(Long id) {
         log.info("Запрос на получение вещи с ID={}", id);
 
-        Item item = itemDao.getItemById(id).orElseThrow(() -> {
+        Item item = itemDao.getItemById(id);
+        if (item == null) {
             log.warn("Вещь с id = {} не найдена", id);
-            return new NotFoundException("Вещь не найдена");
-        });
+            throw new NotFoundException("Вещь не найдена");
+        }
 
         log.info("Вещь с id = {} успешно найдена", id);
         return ItemMapper.toItemDto(item);
@@ -72,7 +76,11 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(ItemDto itemDto, Long ownerId) {
         log.info("Запрос на добавление вещи владельцем с Id = {}", ownerId);
 
-        userService.getUserById(ownerId);
+        User user = userDao.getUserById(ownerId);
+        if (user == null) {
+            log.warn("Пользователь с id = {} не найден", ownerId);
+            throw new NotFoundException("Пользователь не найден");
+        }
 
         Item createItem = itemDao.create(ItemMapper.toItem(itemDto, ownerId));
 
@@ -84,21 +92,26 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto update(ItemDto itemDto, Long itemId, Long ownerId) {
         log.info("Запрос на обновление вещи с id = {}", itemId);
 
-        User user = UserMapper.toUser(userService.getUserById(ownerId));
+        User user = userDao.getUserById(ownerId);
+        if (user == null) {
+            log.warn("Пользователь с id = {} не найден", ownerId);
+            throw new NotFoundException("Пользователь не найден");
+        }
 
-        Item oldItem = itemDao.getItemById(itemId).orElseThrow(() -> {
+        Item oldItem = itemDao.getItemById(itemId);
+        if (oldItem == null) {
             log.warn("Вещь с id = {} не найдена", itemId);
-            return new NotFoundException("Вещь не найдена");
-        });
+            throw new NotFoundException("Вещь не найдена");
+        }
 
         if (!oldItem.getOwnerId().equals(user.getId())) {
             log.warn("Вещь с id = {} не принадлежит пользователю с id = {}", itemId, ownerId);
             throw new ValidationException("Вещь не принадлежит пользователю");
         }
 
-        if (itemDto.getName() != null) oldItem.setName(itemDto.getName());
-        if (itemDto.getDescription() != null) oldItem.setDescription(itemDto.getDescription());
-        if (itemDto.getAvailable() != null) oldItem.setAvailable(itemDto.getAvailable());
+        Optional.ofNullable(itemDto.getName()).ifPresent(oldItem::setName);
+        Optional.ofNullable(itemDto.getDescription()).ifPresent(oldItem::setDescription);
+        Optional.ofNullable(itemDto.getAvailable()).ifPresent(oldItem::setAvailable);
 
         Item updateItem = itemDao.update(oldItem);
 
@@ -110,12 +123,17 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto delete(Long itemId, Long ownerId) {
         log.info("Запрос на удаление вещи с id = {}", itemId);
 
-        User user = UserMapper.toUser(userService.getUserById(ownerId));
+        User user = userDao.getUserById(ownerId);
+        if (user == null) {
+            log.warn("Пользователь с id = {} не найден", ownerId);
+            throw new NotFoundException("Пользователь не найден");
+        }
 
-        Item item = itemDao.getItemById(itemId).orElseThrow(() -> {
+        Item item = itemDao.getItemById(itemId);
+        if (item == null) {
             log.warn("Вещь с id = {} не найдена", itemId);
-            return new NotFoundException("Вещь не найдена");
-        });
+            throw new NotFoundException("Вещь не найдена");
+        }
 
         if (!item.getOwnerId().equals(user.getId())) {
             log.warn("Вещь с id = {} не принадлежит пользователю с id = {}", itemId, ownerId);

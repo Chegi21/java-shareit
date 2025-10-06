@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.dao;
 
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
@@ -15,8 +16,8 @@ public class UserDaoImp implements UserDao {
     }
 
     @Override
-    public Optional<User> getUserById(Long userId) {
-        return Optional.ofNullable(userMap.get(userId));
+    public User getUserById(Long userId) {
+        return userMap.get(userId);
     }
 
     @Override
@@ -44,5 +45,10 @@ public class UserDaoImp implements UserDao {
                 .max()
                 .orElse(0);
         return ++currentId;
+    }
+
+    public boolean existEmail(UserDto userDto) {
+        return userMap.values().stream()
+                .anyMatch(user -> user.getEmail().equalsIgnoreCase(userDto.getEmail()));
     }
 }

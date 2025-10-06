@@ -11,8 +11,8 @@ public class ItemDaoImp implements ItemDao {
     private final Map<Long, Item> itemMap = new HashMap<>();
 
     @Override
-    public Optional<Item> getItemById(Long itemId) {
-        return Optional.ofNullable(itemMap.get(itemId));
+    public Item getItemById(Long itemId) {
+        return itemMap.get(itemId);
     }
 
     @Override
