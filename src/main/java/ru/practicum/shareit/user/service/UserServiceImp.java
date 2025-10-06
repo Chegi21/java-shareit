@@ -66,8 +66,8 @@ public class UserServiceImp implements UserService {
             throw new NotFoundException("Пользователь не найден");
         }
 
-        Optional.ofNullable(userDto.getName()).ifPresent(userDto::setName);
-        Optional.ofNullable(userDto.getEmail()).ifPresent(userDto::setEmail);
+        Optional.ofNullable(userDto.getName()).ifPresent(oldUser::setName);
+        Optional.ofNullable(userDto.getEmail()).ifPresent(oldUser::setEmail);
 
         User updateUser = userDao.update(oldUser);
 
