@@ -4,9 +4,10 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface UserDao {
-    User getUserById(Long id);
+    Optional<User> getUserById(Long id);
 
     Collection<User> getAllUsers();
 

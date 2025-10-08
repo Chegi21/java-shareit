@@ -3,9 +3,10 @@ package ru.practicum.shareit.item.dao;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface ItemDao {
-    Item getItemById(Long itemId);
+    Optional<Item> getItemById(Long itemId);
 
     Collection<Item> getItemsByOwner(Long ownerId);
 

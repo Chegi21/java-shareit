@@ -26,14 +26,14 @@ public class UserServiceImp implements UserService {
     public UserDto getUserById(Long id) {
         log.info("Запрос на получения пользователя с id = {}", id);
 
-        User user = userDao.getUserById(id);
-        if (user == null) {
+        Optional<User> user = userDao.getUserById(id);
+        if (user.isEmpty()) {
             log.warn("Пользователь с id = {} не найден", id);
             throw new NotFoundException("Пользователь не найден");
         }
 
         log.info("Пользователь с id = {} успешно найден", id);
-        return UserMapper.toUserDto(user);
+        return UserMapper.toUserDto(user.get());
     }
 
     @Override
@@ -60,32 +60,32 @@ public class UserServiceImp implements UserService {
             throw new ValidationException("Некорректный или уже существующий email");
         }
 
-        User oldUser = userDao.getUserById(userId);
-        if (oldUser == null) {
+        Optional<User> oldUser = userDao.getUserById(userId);
+        if (oldUser.isEmpty()) {
             log.warn("Пользователь с id = {} не найден", userId);
             throw new NotFoundException("Пользователь не найден");
         }
 
-        Optional.ofNullable(userDto.getName()).ifPresent(oldUser::setName);
-        Optional.ofNullable(userDto.getEmail()).ifPresent(oldUser::setEmail);
+        Optional.ofNullable(userDto.getName()).ifPresent(name -> oldUser.get().setName(name));
+        Optional.ofNullable(userDto.getEmail()).ifPresent(email -> oldUser.get().setEmail(email));
 
-        User updateUser = userDao.update(oldUser);
+        User updateUser = userDao.update(oldUser.get());
 
         log.info("Пользователь с id = {} успешно обновлен", updateUser.getId());
         return UserMapper.toUserDto(updateUser);
     }
 
     @Override
-    public UserDto delete(Long userid) {
-        log.info("Запрос на удаление пользователя с id = {}", userid);
+    public UserDto delete(Long userId) {
+        log.info("Запрос на удаление пользователя с id = {}", userId);
 
-        User user = userDao.getUserById(userid);
-        if (user == null) {
-            log.warn("Пользователь с id = {} не найден", userid);
+        Optional<User> user = userDao.getUserById(userId);
+        if (user.isEmpty()) {
+            log.warn("Пользователь с id = {} не найден", userId);
             throw new NotFoundException("Пользователь не найден");
         }
 
-        User deleteUser = userDao.delete(user.getId());
+        User deleteUser = userDao.delete(user.get().getId());
 
         log.info("Пользователь с id = {} успешно удален", deleteUser.getId());
         return UserMapper.toUserDto(deleteUser);

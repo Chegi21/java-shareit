@@ -16,8 +16,8 @@ public class UserDaoImp implements UserDao {
     }
 
     @Override
-    public User getUserById(Long userId) {
-        return userMap.get(userId);
+    public Optional<User> getUserById(Long userId) {
+        return Optional.ofNullable(userMap.get(userId));
     }
 
     @Override
