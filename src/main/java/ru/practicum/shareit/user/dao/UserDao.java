@@ -17,5 +17,7 @@ public interface UserDao {
 
     User delete(Long id);
 
+    boolean existUser(Long userId);
+
     boolean existEmail(UserDto userDto);
 }

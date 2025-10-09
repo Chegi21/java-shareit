@@ -47,6 +47,11 @@ public class UserDaoImp implements UserDao {
         return ++currentId;
     }
 
+    public boolean existUser(Long userId) {
+        return userMap.values().stream()
+                .anyMatch(user -> user.getId().equals(userId));
+    }
+
     public boolean existEmail(UserDto userDto) {
         return userMap.values().stream()
                 .anyMatch(user -> user.getEmail().equalsIgnoreCase(userDto.getEmail()));
