@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.dao.ItemDao;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserDao;
 import ru.practicum.shareit.user.model.User;
@@ -15,7 +13,6 @@ import ru.practicum.shareit.user.model.User;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -30,10 +27,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getItemsByOwner(Long ownerId) {
+    public Collection<Item> getItemsByOwner(Long ownerId) {
         log.info("Запрос на список вещей пользователя с id = {}", ownerId);
 
-        if (!userDao.existUser(ownerId)) {
+        if (userDao.userNotExist(ownerId)) {
             log.warn("Пользователь с id = {} не найден", ownerId);
             throw  new NotFoundException("Пользователь не найден");
         }
@@ -41,11 +38,11 @@ public class ItemServiceImpl implements ItemService {
         Collection<Item> items = itemDao.getItemsByOwner(ownerId);
 
         log.info("Найден список в количестве {} штук", items.size());
-        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toSet());
+        return items;
     }
 
     @Override
-    public Collection<ItemDto> getItemsBySearchQuery(String text) {
+    public Collection<Item> getItemsBySearchQuery(String text) {
         log.info("Запрос на поиск вещи с текстом = {}", text);
 
         Collection<Item> items = new ArrayList<>();
@@ -54,11 +51,11 @@ public class ItemServiceImpl implements ItemService {
         }
 
         log.info("Найден список в количестве {} штук", items.size());
-        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toSet());
+        return items;
     }
 
     @Override
-    public ItemDto getItemById(Long id) {
+    public Item getItemById(Long id) {
         log.info("Запрос на получение вещи с ID={}", id);
 
         Item item = itemDao.getItemById(id).orElseThrow(() -> {
@@ -67,55 +64,55 @@ public class ItemServiceImpl implements ItemService {
         });
 
         log.info("Вещь с id = {} успешно найдена", id);
-        return ItemMapper.toItemDto(item);
+        return item;
     }
 
     @Override
-    public ItemDto create(ItemDto itemDto, Long ownerId) {
-        log.info("Запрос на добавление вещи владельцем с Id = {}", ownerId);
+    public Item create(Item item) {
+        log.info("Запрос на добавление вещи владельцем с Id = {}", item.getOwnerId());
 
-        if (!userDao.existUser(ownerId)) {
-            log.warn("Пользователь с id = {} не найден", ownerId);
+        if (userDao.userNotExist(item.getOwnerId())) {
+            log.warn("Пользователь с id = {} не найден", item.getOwnerId());
             throw  new NotFoundException("Пользователь не найден");
         }
 
-        Item createItem = itemDao.create(ItemMapper.toItem(itemDto, ownerId));
+        Item createItem = itemDao.create(item);
 
-        log.info("Вещь с id = {} владельца с id = {} успешно добавлена", createItem.getId(), ownerId);
-        return ItemMapper.toItemDto(createItem);
+        log.info("Вещь с id = {} владельца с id = {} успешно добавлена", createItem.getId(), createItem.getOwnerId());
+        return createItem;
     }
 
     @Override
-    public ItemDto update(ItemDto itemDto, Long itemId, Long ownerId) {
-        log.info("Запрос на обновление вещи с id = {}", itemId);
+    public Item update(Item item) {
+        log.info("Запрос на обновление вещи с id = {}", item.getId());
 
-        User user = userDao.getUserById(ownerId).orElseThrow(() -> {
-            log.warn("Пользователь с id = {} не найден", ownerId);
+        User user = userDao.getUserById(item.getOwnerId()).orElseThrow(() -> {
+            log.warn("Пользователь с id = {} не найден", item.getOwnerId());
             return new NotFoundException("Пользователь не найден");
         });
 
-        Item oldItem = itemDao.getItemById(itemId).orElseThrow(() -> {
-            log.warn("Вещь с id = {} не найдена", itemId);
+        Item oldItem = itemDao.getItemById(item.getId()).orElseThrow(() -> {
+            log.warn("Вещь с id = {} не найдена", item.getId());
             return new NotFoundException("Вещь не найдена");
         });
 
         if (!oldItem.getOwnerId().equals(user.getId())) {
-            log.warn("Вещь с id = {} не принадлежит пользователю с id = {}", itemId, ownerId);
+            log.warn("Вещь с id = {} не принадлежит пользователю с id = {}", item.getId(), item.getOwnerId());
             throw new ValidationException("Вещь не принадлежит пользователю");
         }
 
-        Optional.ofNullable(itemDto.getName()).ifPresent(oldItem::setName);
-        Optional.ofNullable(itemDto.getDescription()).ifPresent(oldItem::setDescription);
-        Optional.ofNullable(itemDto.getAvailable()).ifPresent(oldItem::setAvailable);
+        Optional.ofNullable(item.getName()).ifPresent(oldItem::setName);
+        Optional.ofNullable(item.getDescription()).ifPresent(oldItem::setDescription);
+        Optional.ofNullable(item.getAvailable()).ifPresent(oldItem::setAvailable);
 
         Item updateItem = itemDao.update(oldItem);
 
         log.info("Вещь с id = {} успешно обновлена", updateItem.getId());
-        return ItemMapper.toItemDto(updateItem);
+        return updateItem;
     }
 
     @Override
-    public ItemDto delete(Long itemId, Long ownerId) {
+    public Item delete(Long itemId, Long ownerId) {
         log.info("Запрос на удаление вещи с id = {}", itemId);
 
         User user = userDao.getUserById(ownerId).orElseThrow(() -> {
@@ -136,6 +133,6 @@ public class ItemServiceImpl implements ItemService {
         Item deleteItem = itemDao.delete(itemId);
 
         log.info("Вещь с id = {} успешно удалена", deleteItem.getId());
-        return ItemMapper.toItemDto(deleteItem);
+        return deleteItem;
     }
 }

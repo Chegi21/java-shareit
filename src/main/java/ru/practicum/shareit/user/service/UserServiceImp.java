@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.user.UserMapper;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.dao.UserDao;
 
@@ -23,7 +21,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public UserDto getUserById(Long id) {
+    public User getUserById(Long id) {
         log.info("Запрос на получения пользователя с id = {}", id);
 
         User user = userDao.getUserById(id).orElseThrow(() -> {
@@ -32,30 +30,30 @@ public class UserServiceImp implements UserService {
         });
 
         log.info("Пользователь с id = {} успешно найден", id);
-        return UserMapper.toUserDto(user);
+        return user;
     }
 
     @Override
-    public UserDto create(UserDto userDto) {
+    public User create(User user) {
         log.info("Запрос на создание пользователя");
 
-        if (userDao.existEmail(userDto)) {
-            log.warn("Некорректный или уже существующий email {}", userDto.getEmail());
+        if (userDao.existEmail(user)) {
+            log.warn("Некорректный или уже существующий email {}", user.getEmail());
             throw new ValidationException("Некорректный или уже существующий email");
         }
 
-        User createdUser = userDao.create(UserMapper.toUser(userDto));
+        User createdUser = userDao.create(user);
 
         log.info("Пользователь с id = {} успешно создан", createdUser.getId());
-        return UserMapper.toUserDto(createdUser);
+        return createdUser;
     }
 
     @Override
-    public UserDto update(UserDto userDto, Long userId) {
+    public User update(User user, Long userId) {
         log.info("Запрос на обновление данных пользователя с id = {}", userId);
 
-        if (userDao.existEmail(userDto)) {
-            log.warn("Некорректный или уже существующий email {}", userDto.getEmail());
+        if (userDao.existEmail(user)) {
+            log.warn("Некорректный или уже существующий email {}", user.getEmail());
             throw new ValidationException("Некорректный или уже существующий email");
         }
 
@@ -64,17 +62,17 @@ public class UserServiceImp implements UserService {
             return new NotFoundException("Пользователь не найден");
         });
 
-        Optional.ofNullable(userDto.getName()).ifPresent(oldUser::setName);
-        Optional.ofNullable(userDto.getEmail()).ifPresent(oldUser::setEmail);
+        Optional.ofNullable(user.getName()).ifPresent(oldUser::setName);
+        Optional.ofNullable(user.getEmail()).ifPresent(oldUser::setEmail);
 
         User updateUser = userDao.update(oldUser);
 
         log.info("Пользователь с id = {} успешно обновлен", updateUser.getId());
-        return UserMapper.toUserDto(updateUser);
+        return updateUser;
     }
 
     @Override
-    public UserDto delete(Long userId) {
+    public User delete(Long userId) {
         log.info("Запрос на удаление пользователя с id = {}", userId);
 
         User user = userDao.getUserById(userId).orElseThrow(() -> {
@@ -85,6 +83,6 @@ public class UserServiceImp implements UserService {
         User deleteUser = userDao.delete(user.getId());
 
         log.info("Пользователь с id = {} успешно удален", deleteUser.getId());
-        return UserMapper.toUserDto(deleteUser);
+        return deleteUser;
     }
 }

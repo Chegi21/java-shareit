@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.dao;
 
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
@@ -17,7 +16,7 @@ public interface UserDao {
 
     User delete(Long id);
 
-    boolean existUser(Long userId);
+    boolean userNotExist(Long userId);
 
-    boolean existEmail(UserDto userDto);
+    boolean existEmail(User user);
 }
