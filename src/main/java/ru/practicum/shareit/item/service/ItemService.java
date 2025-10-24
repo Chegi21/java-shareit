@@ -4,7 +4,6 @@ import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemShortDto;
-import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
 

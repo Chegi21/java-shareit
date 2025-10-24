@@ -2,9 +2,7 @@ package ru.practicum.shareit.item.model;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class BookingInputDto {
+public class BookingRequestDto {
     @PositiveOrZero(message = "Id брони не может быть отрицательным числом")
     private Long id;
 

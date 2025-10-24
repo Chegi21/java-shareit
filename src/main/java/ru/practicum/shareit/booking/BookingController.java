@@ -3,7 +3,7 @@ package ru.practicum.shareit.booking;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingInputDto;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingOutDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
@@ -36,8 +36,8 @@ public class BookingController {
     }
 
     @PostMapping()
-    public BookingOutDto create(@Valid @RequestBody BookingInputDto bookingInputDto, @RequestHeader(OWNER) Long userId) {
-        return bookingService.create(BookingMapper.toBooking(bookingInputDto, userId));
+    public BookingOutDto create(@Valid @RequestBody BookingRequestDto bookingRequestDto, @RequestHeader(OWNER) Long userId) {
+        return bookingService.create(BookingMapper.toBooking(bookingRequestDto, userId));
     }
 
     @PatchMapping("/{bookingId}")
