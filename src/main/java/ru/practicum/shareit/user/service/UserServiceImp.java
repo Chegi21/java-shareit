@@ -2,29 +2,32 @@ package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.dao.UserDao;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Optional;
 
 @Slf4j
 @Service
 public class UserServiceImp implements UserService {
-    private final UserDao userDao;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserServiceImp(UserDao userDao) {
-        this.userDao = userDao;
+    public UserServiceImp(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public User getUserById(Long id) {
+    public User findById(Long id) {
         log.info("Запрос на получения пользователя с id = {}", id);
 
-        User user = userDao.getUserById(id).orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
             log.warn("Пользователь с id = {} не найден", id);
             return new NotFoundException("Пользователь не найден");
         });
@@ -33,31 +36,27 @@ public class UserServiceImp implements UserService {
         return user;
     }
 
+    @Transactional
     @Override
     public User create(User user) {
         log.info("Запрос на создание пользователя");
 
-        if (userDao.existEmail(user)) {
+        try {
+            User createdUser = userRepository.save(user);
+            log.info("Пользователь с id = {} успешно создан", createdUser.getId());
+            return createdUser;
+        } catch (DataIntegrityViolationException e) {
             log.warn("Некорректный или уже существующий email {}", user.getEmail());
-            throw new ValidationException("Некорректный или уже существующий email");
+            throw new ValidationException("Некорректный или уже существующий email. Ошибка: " + e.getLocalizedMessage());
         }
-
-        User createdUser = userDao.create(user);
-
-        log.info("Пользователь с id = {} успешно создан", createdUser.getId());
-        return createdUser;
     }
 
+    @Transactional
     @Override
     public User update(User user, Long userId) {
         log.info("Запрос на обновление данных пользователя с id = {}", userId);
 
-        if (userDao.existEmail(user)) {
-            log.warn("Некорректный или уже существующий email {}", user.getEmail());
-            throw new ValidationException("Некорректный или уже существующий email");
-        }
-
-        User oldUser = userDao.getUserById(userId).orElseThrow(() -> {
+        User oldUser = userRepository.findById(userId).orElseThrow(() -> {
             log.warn("Пользователь с id = {} не найден", userId);
             return new NotFoundException("Пользователь не найден");
         });
@@ -65,24 +64,27 @@ public class UserServiceImp implements UserService {
         Optional.ofNullable(user.getName()).ifPresent(oldUser::setName);
         Optional.ofNullable(user.getEmail()).ifPresent(oldUser::setEmail);
 
-        User updateUser = userDao.update(oldUser);
-
-        log.info("Пользователь с id = {} успешно обновлен", updateUser.getId());
-        return updateUser;
+        try {
+            User updateUser = userRepository.save(oldUser);
+            log.info("Пользователь с id = {} успешно обновлен", updateUser.getId());
+            return updateUser;
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Некорректный или уже существующий email {}", user.getEmail());
+            throw new ValidationException("Некорректный или уже существующий email. Ошибка: " + e.getLocalizedMessage());
+        }
     }
 
+    @Transactional
     @Override
-    public User delete(Long userId) {
+    public void delete(Long userId) {
         log.info("Запрос на удаление пользователя с id = {}", userId);
 
-        User user = userDao.getUserById(userId).orElseThrow(() -> {
+        User user = userRepository.findById(userId).orElseThrow(() -> {
             log.warn("Пользователь с id = {} не найден", userId);
             return new NotFoundException("Пользователь не найден");
         });
 
-        User deleteUser = userDao.delete(user.getId());
-
-        log.info("Пользователь с id = {} успешно удален", deleteUser.getId());
-        return deleteUser;
+        userRepository.deleteById(user.getId());
+        log.info("Пользователь с id = {} успешно удален", userId);
     }
 }

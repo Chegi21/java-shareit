@@ -1,31 +1,34 @@
 package ru.practicum.shareit.item.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.*;
 
-@Data
+import lombok.*;
+
+@Getter
+@Setter
 @Builder
-@EqualsAndHashCode(of = {"id"})
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@Entity
+@Table(name = "items")
 public class Item {
-    @PositiveOrZero(message = "Id вещи не может быть отрицательным числом")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Название вещи не может быть пустым")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @NotBlank(message = "Описание вещи не может быть пустым")
+    @Column(name = "description", nullable = false)
     private String description;
 
-    @NotNull
+    @Column(name = "available", nullable = false)
     private Boolean available;
 
-    @PositiveOrZero(message = "Id владельца не может быть отрицательным числом")
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
-    @PositiveOrZero(message = "Id запроса не может быть отрицательным числом")
+    @Column(name = "request_id")
     private Long requestId;
 }
