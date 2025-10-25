@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.BookingMapper;
-import ru.practicum.shareit.booking.dto.BookingOutDto;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.Status;
@@ -18,8 +18,6 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -39,25 +37,26 @@ public class BookingServiceImp implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public Collection<BookingOutDto> findAllBookingsUser(String state, Long userId) {
+    public Collection<BookingResponseDto> findAllBookingsUser(String state, Long userId) {
+        log.info("Получен запрос на все сделанные брони пользователем с id = {}", userId);
+
         if (!userRepository.existsById(userId)) {
             log.warn("Пользователя с id = {} не существует", userId);
             throw new NotFoundException("Пользователя не существует");
         }
 
         BookingState bookingState = BookingState.from(state);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         Collection<Booking> bookings = switch (bookingState) {
-            case CURRENT -> bookingRepository.findCurrentByBookerId(userId, now);
-            case PAST -> bookingRepository.findPastByBookerId(userId, now);
-            case FUTURE -> bookingRepository.findFutureByBookerId(userId, now);
+            case CURRENT -> bookingRepository.findCurrentByBookerId(userId);
+            case PAST -> bookingRepository.findPastByBookerId(userId);
+            case FUTURE -> bookingRepository.findFutureByBookerId(userId);
             case WAITING -> bookingRepository.findByBookerIdAndWaitingStatus(userId);
             case REJECTED -> bookingRepository.findByBookerIdAndRejectStatus(userId);
             default -> bookingRepository.findAllByBookerId(userId);
         };
 
-        Collection<BookingOutDto> bookingOutDtoCollection = bookings.stream()
+        Collection<BookingResponseDto> bookingResponseDtoCollection = bookings.stream()
                 .map(booking -> {
                     User booker = userRepository.findById(booking.getBookerId())
                             .orElseThrow(() -> {
@@ -75,31 +74,32 @@ public class BookingServiceImp implements BookingService {
                 })
                 .collect(Collectors.toList());
 
-        log.info("Найдено {} бронирований для пользователя id = {} со статусом {}", bookings.size(), userId, state);
-        return bookingOutDtoCollection;
+        log.info("Найдено бронирований в количестве {} для пользователя c id = {}, со статусом {}", bookings.size(), userId, state);
+        return bookingResponseDtoCollection;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Collection<BookingOutDto> findAllBookingsOwner(String state, Long ownerId) {
+    public Collection<BookingResponseDto> findAllBookingsOwner(String state, Long ownerId) {
+        log.info("Получен запрос на все брони владельца вещей с id = {}", ownerId);
+
         if (!userRepository.existsById(ownerId)) {
             log.warn("Пользователя с id = {} не существует", ownerId);
             throw new NotFoundException("Пользователя не существует");
         }
 
         BookingState bookingState = BookingState.from(state);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         Collection<Booking> bookings = switch (bookingState) {
-            case CURRENT -> bookingRepository.findCurrentByOwnerId(ownerId, now);
-            case PAST -> bookingRepository.findPastByOwnerId(ownerId, now);
-            case FUTURE -> bookingRepository.findFutureByOwnerId(ownerId, now);
+            case CURRENT -> bookingRepository.findCurrentByOwnerId(ownerId);
+            case PAST -> bookingRepository.findPastByOwnerId(ownerId);
+            case FUTURE -> bookingRepository.findFutureByOwnerId(ownerId);
             case WAITING -> bookingRepository.findWaitingByOwnerId(ownerId);
             case REJECTED -> bookingRepository.findRejectedByOwnerId(ownerId);
             default -> bookingRepository.findAllByOwnerId(ownerId);
         };
 
-        Collection<BookingOutDto> bookingOutDtoCollection = bookings.stream()
+        Collection<BookingResponseDto> bookingResponseDtoCollection = bookings.stream()
                 .map(booking -> {
                     User booker = userRepository.findById(booking.getBookerId())
                             .orElseThrow(() -> {
@@ -117,13 +117,13 @@ public class BookingServiceImp implements BookingService {
                 })
                 .collect(Collectors.toList());
 
-        log.info("Найдено {} бронирований для пользователя id = {} со статусом {}", bookings.size(), ownerId, state);
-        return bookingOutDtoCollection;
+        log.info("Найдено бронирований в количестве {} для владельца вещей с id = {}, со статусом {}", bookings.size(), ownerId, state);
+        return bookingResponseDtoCollection;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public BookingOutDto findById(Long bookingId, Long userId) {
+    public BookingResponseDto findById(Long bookingId, Long userId) {
         log.info("Запрос на получение брони с id = {} от пользователя с id = {}", bookingId, userId);
 
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> {
@@ -143,13 +143,13 @@ public class BookingServiceImp implements BookingService {
                     return new NotFoundException("Вещи для брони не существует");
                 });
 
-        if (!booking.getBookerId().equals(user.getId()) || item.getOwnerId().equals(user.getId())) {
+        if (!booking.getBookerId().equals(user.getId()) && !item.getOwnerId().equals(user.getId())) {
             log.warn("Пользователь с id = {} не имеет доступа к бронированию c id = {}", userId, bookingId);
             throw new IllegalAccessException("Пользователь не имеет доступа к бронированию");
         }
 
         log.info("Бронь с id = {} успешно найдена", bookingId);
-        return BookingOutDto.builder()
+        return BookingResponseDto.builder()
                 .id(booking.getId())
                 .start(booking.getStartDate())
                 .end(booking.getEndDate())
@@ -161,19 +161,19 @@ public class BookingServiceImp implements BookingService {
 
     @Transactional
     @Override
-    public BookingOutDto create(Booking booking) {
+    public BookingResponseDto create(Booking booking) {
         log.info("Запрос на создание брони для вещи с id = {} пользователем с id = {}", booking.getItemId(), booking.getBookerId());
 
         User booker = userRepository.findById(booking.getBookerId())
                 .orElseThrow(() -> {
                     log.warn("Пользователя с id = {} не существует", booking.getBookerId());
-                    return new NotFoundException("Пользователя нет в системе");
+                    return new NotFoundException("Пользователя не существует");
                 });
 
         Item item = itemRepository.findById(booking.getItemId())
                 .orElseThrow(() -> {
                     log.warn("Вещи для бронирования с id = {} не существует", booking.getItemId());
-                    return new NotFoundException("Вещи нет в системе");
+                    return new NotFoundException("Вещи не существует");
                 });
 
         if (!item.getAvailable()) {
@@ -194,7 +194,7 @@ public class BookingServiceImp implements BookingService {
         Booking createBooking = bookingRepository.save(booking);
 
         log.info("Бронь для вещи с id = {} пользователем с id = {} успешно создана", createBooking.getItemId(), createBooking.getBookerId());
-        return BookingOutDto.builder()
+        return BookingResponseDto.builder()
                 .id(createBooking.getId())
                 .start(createBooking.getStartDate())
                 .end(createBooking.getEndDate())
@@ -206,7 +206,7 @@ public class BookingServiceImp implements BookingService {
 
     @Transactional
     @Override
-    public BookingOutDto update(Long bookingId, Long userId, boolean approved) {
+    public BookingResponseDto update(Long bookingId, Long userId, boolean approved) {
         log.info("Запрос на обновление брони для вещи с id = {} пользователем с id = {}", bookingId, userId);
 
         User owner = userRepository.findById(userId)
@@ -244,7 +244,7 @@ public class BookingServiceImp implements BookingService {
         Booking updated = bookingRepository.save(booking);
 
         log.info("Статус брони вещи с id = {} изменён на {}", booking.getItemId(), booking.getStatus());
-        return BookingOutDto.builder()
+        return BookingResponseDto.builder()
                 .id(updated.getId())
                 .start(booking.getStartDate())
                 .end(booking.getEndDate())

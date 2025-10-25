@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.CommentResponseDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemFullDto;
 import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -21,18 +21,18 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getItemsByOwner(@RequestHeader(OWNER) Long ownerId) {
+    public Collection<ItemFullDto> getItemsByOwner(@RequestHeader(OWNER) Long ownerId) {
         return itemService.getItemsByOwner(ownerId);
 
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> getItemsBySearchQuery(@RequestParam String text) {
+    public Collection<ItemFullDto> getItemsBySearchQuery(@RequestParam String text) {
         return itemService.getItemsBySearchQuery(text);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@PathVariable Long itemId, @RequestHeader(OWNER) Long ownerId) {
+    public ItemFullDto getItemById(@PathVariable Long itemId, @RequestHeader(OWNER) Long ownerId) {
         return itemService.getItemById(itemId, ownerId);
     }
 

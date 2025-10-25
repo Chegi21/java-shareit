@@ -4,14 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 
 import java.util.Collection;
-import java.util.HashSet;
 
 @Data
 @Builder
-public class ItemDto {
+public class ItemFullDto {
     @PositiveOrZero(message = "Id вещи не может быть отрицательным числом")
     private Long id;
 
@@ -30,10 +29,9 @@ public class ItemDto {
     @PositiveOrZero(message = "Id запроса не может быть отрицательным числом")
     private Long requestId;
 
-    private BookingResponseDto lastBooking;
+    private BookingShortDto lastBooking;
 
-    private BookingResponseDto nextBooking;
+    private BookingShortDto nextBooking;
 
-    @Builder.Default
-    private Collection<CommentResponseDto> comments = new HashSet<>();
+    private Collection<CommentResponseDto> comments;
 }

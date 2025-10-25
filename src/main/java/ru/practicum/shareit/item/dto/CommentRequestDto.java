@@ -14,6 +14,5 @@ public class CommentRequestDto {
 
     private String authorName;
 
-
     private LocalDateTime created;
 }

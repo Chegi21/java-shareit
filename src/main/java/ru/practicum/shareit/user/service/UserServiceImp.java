@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -17,7 +19,6 @@ import java.util.Optional;
 public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
 
-    //
     @Autowired
     public UserServiceImp(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -25,7 +26,7 @@ public class UserServiceImp implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public User findById(Long id) {
+    public UserDto findById(Long id) {
         log.info("Запрос на получения пользователя с id = {}", id);
 
         User user = userRepository.findById(id).orElseThrow(() -> {
@@ -34,18 +35,18 @@ public class UserServiceImp implements UserService {
         });
 
         log.info("Пользователь с id = {} успешно найден", id);
-        return user;
+        return UserMapper.toUserDto(user);
     }
 
     @Transactional
     @Override
-    public User create(User user) {
+    public UserDto create(UserDto user) {
         log.info("Запрос на создание пользователя");
 
         try {
-            User createdUser = userRepository.save(user);
+            User createdUser = userRepository.save(UserMapper.toUser(user));
             log.info("Пользователь с id = {} успешно создан", createdUser.getId());
-            return createdUser;
+            return UserMapper.toUserDto(createdUser);
         } catch (DataIntegrityViolationException e) {
             log.warn("Некорректный или уже существующий email {}", user.getEmail());
             throw new ValidationException("Некорректный или уже существующий email. Ошибка: " + e.getLocalizedMessage());
@@ -54,7 +55,7 @@ public class UserServiceImp implements UserService {
 
     @Transactional
     @Override
-    public User update(User user, Long userId) {
+    public UserDto update(UserDto user, Long userId) {
         log.info("Запрос на обновление данных пользователя с id = {}", userId);
 
         User oldUser = userRepository.findById(userId).orElseThrow(() -> {
@@ -68,7 +69,7 @@ public class UserServiceImp implements UserService {
         try {
             User updateUser = userRepository.save(oldUser);
             log.info("Пользователь с id = {} успешно обновлен", updateUser.getId());
-            return updateUser;
+            return UserMapper.toUserDto(updateUser);
         } catch (DataIntegrityViolationException e) {
             log.warn("Некорректный или уже существующий email {}", user.getEmail());
             throw new ValidationException("Некорректный или уже существующий email. Ошибка: " + e.getLocalizedMessage());
