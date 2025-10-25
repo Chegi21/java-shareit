@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
+import ru.practicum.shareit.booking.dto.BookingOutDto;
+import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -106,20 +108,35 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public ItemDto getItemById(Long id) {
-        log.info("Запрос на получение вещи с ID={}", id);
+    public ItemDto getItemById(Long itemId, Long ownerId) {
+        log.info("Запрос на получение вещи с ID={}", itemId);
 
-        Item item = itemRepository.findById(id).orElseThrow(() -> {
-            log.warn("Вещь с id = {} не найдена", id);
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> {
+            log.warn("Вещь с id = {} не найдена", itemId);
             return new NotFoundException("Вещь не найдена");
         });
 
-        log.info("Вещь с id = {} успешно найдена", id);
+        BookingResponseDto lastBookingDto = null;
+        BookingResponseDto nextBookingDto = null;
+
+        if (item.getOwnerId().equals(ownerId)) {
+            Booking lastBooking = getLastBooking(item.getId());
+            Booking nextBooking = getNextBooking(item.getId());
+
+            if (lastBooking != null) {
+                lastBookingDto = BookingMapper.toBookingShortDto(lastBooking);
+            }
+            if (nextBooking != null) {
+                nextBookingDto = BookingMapper.toBookingShortDto(nextBooking);
+            }
+        }
+
+        log.info("Вещь с id = {} успешно найдена", itemId);
         return ItemMapper.toItemDto(
                 item,
                 getComments(item.getId()),
-                getLastBooking(item.getId()) != null ? BookingMapper.toBookingShortDto(getLastBooking(item.getId())) : null,
-                getNextBooking(item.getId()) != null ? BookingMapper.toBookingShortDto(getNextBooking(item.getId())) : null
+                lastBookingDto,
+                nextBookingDto
         );
     }
 

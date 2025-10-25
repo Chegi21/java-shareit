@@ -12,7 +12,7 @@ public interface ItemService {
 
     Collection<ItemDto> getItemsBySearchQuery(String text);
 
-    ItemDto getItemById(Long itemId);
+    ItemDto getItemById(Long itemId, Long ownerId);
 
     ItemShortDto create(ItemShortDto item, Long ownerId);
 

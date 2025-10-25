@@ -32,7 +32,6 @@ public class BookingMapper {
                 .build();
     }
 
-    //
     public static BookingResponseDto toBookingShortDto(Booking booking) {
         return BookingResponseDto.builder()
                 .id(booking.getId())
