@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceImpTest {
 
     @Test
-    void getUserById() {
+    void findById() {
     }
 
     @Test
