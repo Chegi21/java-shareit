@@ -40,11 +40,11 @@ public class UserServiceImp implements UserService {
 
     @Transactional
     @Override
-    public UserDto create(UserDto user) {
+    public UserDto create(User user) {
         log.info("Запрос на создание пользователя");
 
         try {
-            User createdUser = userRepository.save(UserMapper.toUser(user));
+            User createdUser = userRepository.save((user));
             log.info("Пользователь с id = {} успешно создан", createdUser.getId());
             return UserMapper.toUserDto(createdUser);
         } catch (DataIntegrityViolationException e) {
@@ -55,11 +55,11 @@ public class UserServiceImp implements UserService {
 
     @Transactional
     @Override
-    public UserDto update(UserDto user, Long userId) {
-        log.info("Запрос на обновление данных пользователя с id = {}", userId);
+    public UserDto update(User user) {
+        log.info("Запрос на обновление данных пользователя с id = {}", user.getId());
 
-        User oldUser = userRepository.findById(userId).orElseThrow(() -> {
-            log.warn("Пользователь с id = {} не найден", userId);
+        User oldUser = userRepository.findById(user.getId()).orElseThrow(() -> {
+            log.warn("Пользователь с id = {} не найден", user.getId());
             return new NotFoundException("Пользователь не найден");
         });
 

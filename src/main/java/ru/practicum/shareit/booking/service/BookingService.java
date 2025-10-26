@@ -1,7 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.booking.model.Booking;
 
 import java.util.Collection;
 
@@ -12,7 +12,7 @@ public interface BookingService {
 
     BookingResponseDto findById(Long bookingId, Long userId);
 
-    BookingResponseDto create(Booking booking);
+    BookingResponseDto create(BookingRequestDto booking, Long bookerId);
 
     BookingResponseDto update(Long bookingId, Long userId, boolean approved);
 }

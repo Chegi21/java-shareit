@@ -20,5 +20,5 @@ public interface ItemService {
 
     void delete(Long itemId, Long ownerId);
 
-    CommentResponseDto create(CommentRequestDto comment, Long itemId, Long authorId);
+    CommentResponseDto create(CommentRequestDto comment, Long itemId, Long userId);
 }

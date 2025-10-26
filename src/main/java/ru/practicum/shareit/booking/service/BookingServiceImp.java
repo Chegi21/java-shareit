@@ -4,13 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.IllegalAccessException;
+import ru.practicum.shareit.exception.NotAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.model.Item;
@@ -18,6 +19,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -58,19 +60,19 @@ public class BookingServiceImp implements BookingService {
 
         Collection<BookingResponseDto> bookingResponseDtoCollection = bookings.stream()
                 .map(booking -> {
-                    User booker = userRepository.findById(booking.getBookerId())
+                    User booker = userRepository.findById(booking.getBooker().getId())
                             .orElseThrow(() -> {
-                                log.warn("Пользователь с id = {} не существует", booking.getBookerId());
+                                log.warn("Пользователь с id = {} не существует", booking.getBooker().getId());
                                 return new NotFoundException("Пользователь не существует");
                             });
 
-                    Item item = itemRepository.findById(booking.getItemId())
+                    Item item = itemRepository.findById(booking.getItem().getId())
                             .orElseThrow(() -> {
-                                log.warn("Вещи для брони с id = {} не существует", booking.getItemId());
+                                log.warn("Вещи для брони с id = {} не существует", booking.getItem().getId());
                                 return new NotFoundException("Вещи для брони не существует");
                             });
 
-                    return BookingMapper.toBookingOutDto(booking, booker, item);
+                    return BookingMapper.toBookingResponseDto(booking, item, booker);
                 })
                 .collect(Collectors.toList());
 
@@ -101,19 +103,19 @@ public class BookingServiceImp implements BookingService {
 
         Collection<BookingResponseDto> bookingResponseDtoCollection = bookings.stream()
                 .map(booking -> {
-                    User booker = userRepository.findById(booking.getBookerId())
+                    User booker = userRepository.findById(booking.getBooker().getId())
                             .orElseThrow(() -> {
-                                log.warn("Пользователь с id = {} не существует", booking.getBookerId());
+                                log.warn("Пользователь с id = {} не существует", booking.getBooker().getId());
                                 return new NotFoundException("Пользователь не существует");
                             });
 
-                    Item item = itemRepository.findById(booking.getItemId())
+                    Item item = itemRepository.findById(booking.getItem().getId())
                             .orElseThrow(() -> {
-                                log.warn("Вещи для брони с id = {} не существует", booking.getItemId());
+                                log.warn("Вещи для брони с id = {} не существует", booking.getItem().getId());
                                 return new NotFoundException("Вещи для брони не существует");
                             });
 
-                    return BookingMapper.toBookingOutDto(booking, booker, item);
+                    return BookingMapper.toBookingResponseDto(booking, item, booker);
                 })
                 .collect(Collectors.toList());
 
@@ -137,36 +139,29 @@ public class BookingServiceImp implements BookingService {
                     return new NotFoundException("Пользователь не существует");
                 });
 
-        Item item = itemRepository.findById(booking.getItemId())
+        Item item = itemRepository.findById(booking.getItem().getId())
                 .orElseThrow(() -> {
-                    log.warn("Вещи для брони с id = {} не существует", booking.getItemId());
+                    log.warn("Вещи для брони с id = {} не существует", booking.getItem().getId());
                     return new NotFoundException("Вещи для брони не существует");
                 });
 
-        if (!booking.getBookerId().equals(user.getId()) && !item.getOwnerId().equals(user.getId())) {
+        if (!booking.getBooker().getId().equals(user.getId()) && !item.getOwner().getId().equals(user.getId())) {
             log.warn("Пользователь с id = {} не имеет доступа к бронированию c id = {}", userId, bookingId);
-            throw new IllegalAccessException("Пользователь не имеет доступа к бронированию");
+            throw new NotAccessException("Пользователь не имеет доступа к бронированию");
         }
 
         log.info("Бронь с id = {} успешно найдена", bookingId);
-        return BookingResponseDto.builder()
-                .id(booking.getId())
-                .start(booking.getStartDate())
-                .end(booking.getEndDate())
-                .booker(user)
-                .item(item)
-                .status(booking.getStatus())
-                .build();
+        return BookingMapper.toBookingResponseDto(booking, item, user);
     }
 
     @Transactional
     @Override
-    public BookingResponseDto create(Booking booking) {
-        log.info("Запрос на создание брони для вещи с id = {} пользователем с id = {}", booking.getItemId(), booking.getBookerId());
+    public BookingResponseDto create(BookingRequestDto booking, Long bookerId) {
+        log.info("Запрос на создание брони для вещи с id = {} пользователем с id = {}", booking.getItemId(), bookerId);
 
-        User booker = userRepository.findById(booking.getBookerId())
+        User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> {
-                    log.warn("Пользователя с id = {} не существует", booking.getBookerId());
+                    log.warn("Пользователя с id = {} не существует", bookerId);
                     return new NotFoundException("Пользователя не существует");
                 });
 
@@ -176,32 +171,32 @@ public class BookingServiceImp implements BookingService {
                     return new NotFoundException("Вещи не существует");
                 });
 
+        LocalDateTime now = LocalDateTime.now();
+
         if (!item.getAvailable()) {
             log.warn("Вещь с id = {} не доступна для бронирования", item.getId());
-            throw new IllegalAccessException("Вещь не доступна для бронирования");
+            throw new NotAccessException("Вещь не доступна для бронирования");
         }
 
-        if (item.getOwnerId().equals(booker.getId())) {
+        if (item.getOwner().getId().equals(booker.getId())) {
             log.warn("Владелец с id = {} не может бронировать свою вещь с id = {}", booker.getId(), item.getId());
-            throw new IllegalAccessException("Владелец не может бронировать свою вещь");
+            throw new NotAccessException("Владелец не может бронировать свою вещь");
         }
 
-        if (booking.getStartDate().isAfter(booking.getEndDate()) || booking.getStartDate().isEqual(booking.getEndDate())) {
+        if (booking.getStart().isBefore(now) && booking.getEnd().isBefore(now)) {
+            log.warn("Время начало и окончания бронирования не может быть в прошлом");
+            throw new NotAccessException("Время начало и окончания бронирования не может быть в прошлом");
+        }
+
+        if (booking.getStart().isAfter(booking.getEnd()) || booking.getStart().isEqual(booking.getEnd())) {
             log.warn("Некорректное время бронирования");
             throw new ValidationException("Некорректное время бронирования");
         }
 
-        Booking createBooking = bookingRepository.save(booking);
+        Booking createBooking = bookingRepository.save(BookingMapper.toBooking(booking, item, booker));
 
-        log.info("Бронь для вещи с id = {} пользователем с id = {} успешно создана", createBooking.getItemId(), createBooking.getBookerId());
-        return BookingResponseDto.builder()
-                .id(createBooking.getId())
-                .start(createBooking.getStartDate())
-                .end(createBooking.getEndDate())
-                .item(item)
-                .booker(booker)
-                .status(createBooking.getStatus())
-                .build();
+        log.info("Бронь для вещи с id = {} пользователем с id = {} успешно создана", createBooking.getItem().getId(), createBooking.getBooker().getId());
+        return BookingMapper.toBookingResponseDto(createBooking, item, booker);
     }
 
     @Transactional
@@ -212,7 +207,7 @@ public class BookingServiceImp implements BookingService {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("Владельца вещи с id = {} не существует", bookingId);
-                    return new IllegalAccessException("Владельца вещи не существует");
+                    return new NotAccessException("Владельца вещи не существует");
                 });
 
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> {
@@ -220,20 +215,20 @@ public class BookingServiceImp implements BookingService {
             return new NotFoundException("Брони не существует");
         });
 
-        Item item = itemRepository.findById(booking.getItemId())
+        Item item = itemRepository.findById(booking.getItem().getId())
                 .orElseThrow(() -> {
                     log.warn("Вещи для обновления брони с id = {} не существует", bookingId);
                     return new NotFoundException("Вещи не существует");
                 });
 
-        User booker = userRepository.findById(booking.getBookerId()).orElseThrow(() -> {
+        User booker = userRepository.findById(booking.getBooker().getId()).orElseThrow(() -> {
             log.warn("Автора брони с id = {} не существует", bookingId);
             return new NotFoundException("Автора брони не существует");
         });
 
-        if (!item.getOwnerId().equals(owner.getId())) {
-            log.warn("Пользователь id = {} не является владельцем вещи id = {}", userId, booking.getItemId());
-            throw new IllegalAccessException("Пользователь не является владельцем вещи");
+        if (!item.getOwner().getId().equals(owner.getId())) {
+            log.warn("Пользователь id = {} не является владельцем вещи id = {}", userId, booking.getItem().getId());
+            throw new NotAccessException("Пользователь не является владельцем вещи");
         }
 
         if (booking.getStatus() == Status.APPROVED && approved) {
@@ -241,16 +236,9 @@ public class BookingServiceImp implements BookingService {
         }
 
         booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
-        Booking updated = bookingRepository.save(booking);
+        Booking updatedBooking = bookingRepository.save(booking);
 
-        log.info("Статус брони вещи с id = {} изменён на {}", booking.getItemId(), booking.getStatus());
-        return BookingResponseDto.builder()
-                .id(updated.getId())
-                .start(booking.getStartDate())
-                .end(booking.getEndDate())
-                .booker(booker)
-                .item(item)
-                .status(updated.getStatus())
-                .build();
+        log.info("Статус брони вещи с id = {} изменён на {}", booking.getItem().getId(), booking.getStatus());
+        return BookingMapper.toBookingResponseDto(updatedBooking, item, booker);
     }
 }

@@ -1,17 +1,14 @@
 package ru.practicum.shareit.item.model;
 
-
 import jakarta.persistence.*;
 import lombok.*;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Setter
 @Getter
-@Builder
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "comments")
 public class Comment {
@@ -22,13 +19,39 @@ public class Comment {
     @Column(name = "text", nullable = false)
     private String text;
 
-    @Column(name = "item_id", nullable = false)
-    private Long itemId;
+    @ManyToOne
+    @JoinColumn(name = "item_id", referencedColumnName = "id")
+    private Item item;
 
-    @Column(name = "author_id", nullable = false)
-    private Long authorId;
+    @ManyToOne
+    @JoinColumn(name = "author_id", referencedColumnName = "id")
+    private User author;
 
     @Column(name = "created", nullable = false)
     private LocalDateTime created;
+
+    public Comment(String text, Item item, User author, LocalDateTime created) {
+        this.text = text;
+        this.item = item;
+        this.author = author;
+        this.created = created;
+    }
+
+    public Comment() {
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Comment comment = (Comment) o;
+        return Objects.equals(id, comment.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }
 

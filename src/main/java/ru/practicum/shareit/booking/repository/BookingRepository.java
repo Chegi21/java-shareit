@@ -9,128 +9,123 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "WHERE b.booker_id = :bookerId " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item " +
+            "JOIN FETCH b.booker " +
+            "WHERE b.booker.id = :bookerId " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findAllByBookerId(@Param("bookerId") Long bookerId);
 
-
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "WHERE b.booker_id = :bookerId " +
-            "AND b.start_date <= :CURRENT_TIMESTAMP " +
-            "AND b.end_date >= CURRENT_TIMESTAMP " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item " +
+            "JOIN FETCH b.booker " +
+            "WHERE b.booker.id = :bookerId " +
+            "AND b.startDate <= CURRENT_TIMESTAMP " +
+            "AND b.endDate >= CURRENT_TIMESTAMP " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findCurrentByBookerId(@Param("bookerId") Long bookerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "WHERE b.booker_id = :bookerId " +
-            "AND b.end_date < CURRENT_TIMESTAMP " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item " +
+            "JOIN FETCH b.booker " +
+            "WHERE b.booker.id = :bookerId " +
+            "AND b.endDate < CURRENT_TIMESTAMP " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findPastByBookerId(@Param("bookerId") Long bookerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "WHERE b.booker_id = :bookerId " +
-            "AND b.start_date > CURRENT_TIMESTAMP " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item " +
+            "JOIN FETCH b.booker " +
+            "WHERE b.booker.id = :bookerId " +
+            "AND b.startDate > CURRENT_TIMESTAMP " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findFutureByBookerId(@Param("bookerId") Long bookerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "WHERE b.booker_id = :bookerId " +
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item " +
+            "JOIN FETCH b.booker " +
+            "WHERE b.booker.id = :bookerId " +
             "AND b.status = 'WAITING' " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findByBookerIdAndWaitingStatus(@Param("bookerId") Long bookerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "WHERE b.booker_id = :bookerId " +
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item " +
+            "JOIN FETCH b.booker " +
+            "WHERE b.booker.id = :bookerId " +
             "AND b.status = 'REJECTED' " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findByBookerIdAndRejectStatus(@Param("bookerId") Long bookerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "JOIN items i ON b.item_id = i.id " +
-            "WHERE i.owner_id = :ownerId " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findAllByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "JOIN items i ON b.item_id = i.id " +
-            "WHERE i.owner_id = :ownerId " +
-            "AND b.start_date <= CURRENT_TIMESTAMP " +
-            "AND b.end_date >= CURRENT_TIMESTAMP " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
+            "AND b.startDate <= CURRENT_TIMESTAMP " +
+            "AND b.endDate >= CURRENT_TIMESTAMP " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "JOIN items i ON b.item_id = i.id " +
-            "WHERE i.owner_id = :ownerId " +
-            "AND b.end_date < CURRENT_TIMESTAMP " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
+            "AND b.endDate < CURRENT_TIMESTAMP " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findPastByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "JOIN items i ON b.item_id = i.id " +
-            "WHERE i.owner_id = :ownerId " +
-            "AND b.start_date > CURRENT_TIMESTAMP " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
+            "AND b.startDate > CURRENT_TIMESTAMP " +
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findFutureByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "JOIN items i ON b.item_id = i.id " +
-            "WHERE i.owner_id = :ownerId " +
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
             "AND b.status = 'WAITING' " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findWaitingByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query(value = "SELECT b.* FROM bookings b " +
-            "JOIN items i ON b.item_id = i.id " +
-            "WHERE i.owner_id = :ownerId " +
+    @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
             "AND b.status = 'REJECTED' " +
-            "ORDER BY b.start_date DESC",
-            nativeQuery = true)
+            "ORDER BY b.startDate DESC")
     Collection<Booking> findRejectedByOwnerId(@Param("ownerId") Long ownerId);
 
-    @Query(value = "SELECT " +
-            "CASE " +
-            "WHEN COUNT(*) > 0 " +
-            "THEN true ELSE false " +
-            "END " +
-            "FROM bookings b " +
-            "WHERE b.item_id = :itemId " +
-            "AND b.booker_id = :userId " +
-            "AND b.end_date < CURRENT_TIMESTAMP " +
-            "AND b.status = 'APPROVED'",
-            nativeQuery = true)
-    boolean hasUserCompletedBooking(@Param("itemId") Long itemId, @Param("userId") Long userId);
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END " +
+            "FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.booker.id = :userId " +
+            "AND b.endDate < CURRENT_TIMESTAMP " +
+            "AND b.status = 'APPROVED'")
+    boolean hasUserCompletedBooking(@Param("itemId") Long itemId,
+                                    @Param("userId") Long userId);
 
-    @Query(value = "SELECT * FROM bookings b " +
-            "WHERE b.item_id = :itemId " +
-            "AND b.start_date < CURRENT_TIMESTAMP " +
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.startDate < CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED' " +
-            "ORDER BY b.end_date DESC " +
-            "LIMIT 1",
-            nativeQuery = true
-    )
+            "ORDER BY b.endDate DESC")
     Optional<Booking> findLastBooking(@Param("itemId") Long itemId);
 
-    @Query(value = "SELECT * FROM bookings b " +
-            "WHERE b.item_id = :itemId " +
-            "AND b.start_date > CURRENT_TIMESTAMP " +
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.startDate > CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED' " +
-            "ORDER BY b.end_date ASC " +
-            "LIMIT 1",
-            nativeQuery = true
-    )
+            "ORDER BY b.startDate ASC")
     Optional<Booking> findNextBooking(@Param("itemId") Long itemId);
 
 

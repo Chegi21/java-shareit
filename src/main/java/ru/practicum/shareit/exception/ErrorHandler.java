@@ -14,8 +14,8 @@ public class ErrorHandler {
                 .body(new ErrorResponse("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(IllegalAccessException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(IllegalAccessException ex) {
+    @ExceptionHandler(NotAccessException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(NotAccessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("error", ex.getMessage()));
     }
