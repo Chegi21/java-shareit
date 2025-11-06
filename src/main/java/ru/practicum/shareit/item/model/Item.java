@@ -1,31 +1,59 @@
 package ru.practicum.shareit.item.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.*;
 
-@Data
-@Builder
-@EqualsAndHashCode(of = {"id"})
+import lombok.*;
+import ru.practicum.shareit.user.model.User;
+
+import java.util.Objects;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "items")
 public class Item {
-    @PositiveOrZero(message = "Id вещи не может быть отрицательным числом")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Название вещи не может быть пустым")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @NotBlank(message = "Описание вещи не может быть пустым")
+    @Column(name = "description", nullable = false)
     private String description;
 
-    @NotNull
+    @Column(name = "available", nullable = false)
     private Boolean available;
 
-    @PositiveOrZero(message = "Id владельца не может быть отрицательным числом")
-    private Long ownerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
-    @PositiveOrZero(message = "Id запроса не может быть отрицательным числом")
+    @Column(name = "request_id")
     private Long requestId;
+
+    public Item(String name, String description, Boolean available, User owner, Long requestId) {
+        this.name = name;
+        this.description = description;
+        this.available = available;
+        this.owner = owner;
+        this.requestId = requestId;
+    }
+
+    public Item() {
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Item item = (Item) o;
+        return Objects.equals(id, item.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

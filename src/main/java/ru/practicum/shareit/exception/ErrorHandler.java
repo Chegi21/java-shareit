@@ -14,6 +14,12 @@ public class ErrorHandler {
                 .body(new ErrorResponse("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(NotAccessException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(NotAccessException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(ValidationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
