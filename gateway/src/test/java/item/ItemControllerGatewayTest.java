@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ShareItGateway;
-import ru.practicum.item.ItemClient;
-import ru.practicum.item.ItemController;
+import ru.practicum.client.ItemClient;
+import ru.practicum.item.controller.ItemController;
 import ru.practicum.item.dto.CommentDto;
 import ru.practicum.item.dto.ItemDto;
 

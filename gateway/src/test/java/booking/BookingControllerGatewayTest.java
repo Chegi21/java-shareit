@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ShareItGateway;
-import ru.practicum.booking.BookingClient;
-import ru.practicum.booking.BookingController;
+import ru.practicum.client.BookingClient;
+import ru.practicum.booking.controller.BookingController;
 import ru.practicum.booking.dto.BookingDto;
 import ru.practicum.booking.model.BookingState;
 

@@ -1,4 +1,4 @@
-package ru.practicum.booking;
+package ru.practicum.booking.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.booking.dto.BookingDto;
 import ru.practicum.booking.model.BookingState;
+import ru.practicum.client.BookingClient;
 
 @RestController
 @Validated

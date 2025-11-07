@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ShareItGateway;
-import ru.practicum.request.ItemRequestClient;
-import ru.practicum.request.ItemRequestController;
+import ru.practicum.client.ItemRequestClient;
+import ru.practicum.request.controller.ItemRequestController;
 import ru.practicum.request.dto.ItemRequestDto;
 
 import java.nio.charset.StandardCharsets;

@@ -1,4 +1,4 @@
-package ru.practicum.item;
+package ru.practicum.item.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.ItemClient;
 import ru.practicum.item.dto.CommentDto;
 import ru.practicum.item.dto.ItemDto;
 

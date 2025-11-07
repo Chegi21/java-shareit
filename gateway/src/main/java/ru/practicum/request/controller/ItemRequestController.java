@@ -1,4 +1,4 @@
-package ru.practicum.request;
+package ru.practicum.request.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.ItemRequestClient;
 import ru.practicum.request.dto.ItemRequestDto;
 
 @Controller
